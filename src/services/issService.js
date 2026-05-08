@@ -1,12 +1,27 @@
 import axios from "axios";
 
-const API_URL = "https://api.wheretheiss.at/v1/satellites/25544";
+// Use Vercel serverless proxy in production, direct APIs in development
+const IS_PROD = import.meta.env.PROD;
+const PROXY_URL = "/api/iss";
+const PRIMARY_URL = "https://api.wheretheiss.at/v1/satellites/25544";
 const FALLBACK_URL = "http://api.open-notify.org/iss-now.json";
 
 export const fetchISSData = async () => {
+  // Strategy 1: Use our own serverless proxy (works everywhere, no CORS/mixed-content issues)
+  if (IS_PROD) {
+    try {
+      const response = await axios.get(PROXY_URL, { timeout: 6000 });
+      if (response.data && response.data.latitude != null) {
+        return response.data;
+      }
+    } catch (err) {
+      console.warn("Proxy ISS fetch failed, trying direct APIs...");
+    }
+  }
+
+  // Strategy 2: Direct primary API (wheretheiss.at)
   try {
-    // Primary: WhereTheISS (High precision + Velocity + Altitude)
-    const response = await axios.get(API_URL, { timeout: 4000 });
+    const response = await axios.get(PRIMARY_URL, { timeout: 4000 });
     return {
       latitude: response.data.latitude,
       longitude: response.data.longitude,
@@ -16,21 +31,22 @@ export const fetchISSData = async () => {
       timestamp: response.data.timestamp,
     };
   } catch (error) {
-    console.warn("Primary ISS API unreachable. Engaging Fallback Intelligence...");
-    try {
-      // Fallback: Open Notify (Basic coordinates)
-      const response = await axios.get(FALLBACK_URL, { timeout: 4000 });
-      return {
-        latitude: parseFloat(response.data.iss_position.latitude),
-        longitude: parseFloat(response.data.iss_position.longitude),
-        velocity: 27600, // Nominal velocity
-        altitude: 415,   // Nominal altitude
-        visibility: "N/A",
-        timestamp: response.data.timestamp,
-      };
-    } catch (fallbackError) {
-      console.error("Critical: All Satellite Feeds Offline", fallbackError);
-      return null;
-    }
+    console.warn("Primary ISS API failed, trying fallback...");
+  }
+
+  // Strategy 3: Fallback API (open-notify.org)
+  try {
+    const response = await axios.get(FALLBACK_URL, { timeout: 4000 });
+    return {
+      latitude: parseFloat(response.data.iss_position.latitude),
+      longitude: parseFloat(response.data.iss_position.longitude),
+      velocity: 27600,
+      altitude: 415,
+      visibility: "N/A",
+      timestamp: response.data.timestamp,
+    };
+  } catch (fallbackError) {
+    console.error("All ISS APIs failed:", fallbackError);
+    return null;
   }
 };
