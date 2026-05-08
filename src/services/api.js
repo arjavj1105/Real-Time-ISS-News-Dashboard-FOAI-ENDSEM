@@ -1,8 +1,6 @@
 import axios from 'axios';
 
-// OBFUSCATED FALLBACK KEY (to pass push protection)
-// Original: 1f3a365393fc489743e31dbab232b672
-const _k = ["1f3a", "3653", "93fc", "4897", "43e3", "1dba", "b232", "b672"].join("");
+const IS_PROD = import.meta.env.PROD;
 
 // 2. Reverse Geocoding
 export const fetchLocationDetails = async (lat, lon) => {
@@ -27,7 +25,7 @@ export const fetchAstronauts = async () => {
   }
 };
 
-// 4. News API (GNews)
+// 4. News API (GNews via Serverless Proxy)
 export const fetchNews = async (category = 'technology') => {
   const cacheKey = `news_cache_${category}`;
   const cached = localStorage.getItem(cacheKey);
@@ -38,22 +36,26 @@ export const fetchNews = async (category = 'technology') => {
     if (!isExpired) return data;
   }
 
-  // Priority: Env Var > Obfuscated Fallback
-  const apiKey = import.meta.env.VITE_NEWS_API_KEY || _k;
+  // Use Vercel proxy in production to avoid CORS/Key issues
+  // Use direct API in dev for faster iteration
+  const url = IS_PROD 
+    ? `/api/news?category=${category}` 
+    : `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&max=10&apikey=${import.meta.env.VITE_NEWS_API_KEY || "1f3a365393fc489743e31dbab232b672"}`;
 
   try {
-    const { data } = await axios.get(`https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&max=10&apikey=${apiKey}`, { 
-      timeout: 10000,
-      headers: { 'Cache-Control': 'no-cache' }
-    });
+    const { data } = await axios.get(url, { timeout: 12000 });
     
-    const articles = data.articles || [];
-    if (articles.length > 0) {
+    // In proxy mode, data is the array itself. In direct mode, it's an object with .articles
+    const articles = IS_PROD ? data : (data.articles || []);
+    
+    if (Array.isArray(articles) && articles.length > 0) {
       localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: articles }));
+      return articles;
     }
-    return articles;
+    
+    return cached ? JSON.parse(cached).data : [];
   } catch (error) {
-    console.error('News API Error:', error);
+    console.error('News Fetch Error:', error);
     return cached ? JSON.parse(cached).data : [];
   }
 };

@@ -175,9 +175,18 @@ export default function NewsBoard({ news, loading, category, setCategory, refres
               </motion.div>
             );
           }) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-700 gap-3 py-16">
-              <Search className="h-12 w-12" />
-              <p className="text-xs font-bold uppercase tracking-[0.2em]">No matching intelligence found</p>
+            <div className="h-full flex flex-col items-center justify-center text-slate-700 gap-4 py-16">
+              <Search className="h-12 w-12 opacity-20" />
+              <div className="text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">No intelligence reports found</p>
+                <p className="text-[10px] text-slate-600 uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">
+                  Satellite relay may be offline or API limit reached.
+                </p>
+              </div>
+              <button onClick={refreshNews}
+                className="mt-4 px-6 py-2 rounded-xl border border-cyan-500/30 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400 hover:bg-cyan-500/10 transition-all">
+                Retry Connection
+              </button>
             </div>
           )}
         </div>
