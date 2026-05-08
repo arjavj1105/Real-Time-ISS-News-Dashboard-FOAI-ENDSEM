@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchLocationDetails, fetchAstronauts, fetchNews } from '../services/api';
 import { fetchISSData } from '../services/issService';
-import toast from 'react-hot-toast';
 
 export const useDashboardData = () => {
   const [issData, setIssData] = useState(null);
@@ -56,13 +55,13 @@ export const useDashboardData = () => {
       try {
         const locDetails = await fetchLocationDetails(finalData.latitude, finalData.longitude);
         if (isMounted.current) setLocationDetails(locDetails);
-      } catch (err) {
+      } catch (_err) {
         if (isMounted.current) setLocationDetails(null);
       }
     } catch (error) {
       console.error('ISS Update Hook Error:', error);
     } finally {
-      if (isMounted.current) setLoading(prev => ({ ...prev, iss: false }));
+      if (isMounted.current) setLoading(prev => (prev.iss ? { ...prev, iss: false } : prev));
     }
   }, []);
 
@@ -92,7 +91,7 @@ export const useDashboardData = () => {
 
   const loadNews = useCallback(async (category) => {
     if (!isMounted.current) return;
-    setLoading(prev => ({ ...prev, news: true }));
+    setLoading(prev => prev.news ? prev : { ...prev, news: true });
     try {
       const articles = await fetchNews(category);
       if (isMounted.current) setNews(articles);

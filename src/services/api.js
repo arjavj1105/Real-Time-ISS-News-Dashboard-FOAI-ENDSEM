@@ -12,7 +12,7 @@ export const fetchLocationDetails = async (lat, lon) => {
       headers: { 'Accept-Language': 'en' }
     });
     return data;
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 };
@@ -22,7 +22,7 @@ export const fetchAstronauts = async () => {
   try {
     const { data } = await axios.get('https://corquaid.github.io/international-space-station-APIs/JSON/people-in-space.json', { timeout: 8000 });
     return data;
-  } catch (err) {
+  } catch (_err) {
     return { people: [] };
   }
 };
