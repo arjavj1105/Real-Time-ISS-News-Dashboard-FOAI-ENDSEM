@@ -1,50 +1,34 @@
-import { HfInference } from "@huggingface/inference";
+import axios from 'axios';
 
-const HF_TOKEN = import.meta.env.VITE_AI_TOKEN;
-
-const client = HF_TOKEN ? new HfInference(HF_TOKEN) : null;
+const IS_PROD = import.meta.env.PROD;
 
 export const askAI = async (dashboardData, userQuestion) => {
-  if (!client) {
-    return "AI Core offline: API Token missing. Please check your environment configuration.";
+  if (IS_PROD) {
+    try {
+      const { data } = await axios.post('/api/chat', { dashboardData, userQuestion }, { timeout: 25000 });
+      return data.response;
+    } catch (error) {
+      console.error("AI Proxy Error:", error);
+      return "The AI Core is temporarily offline. Please try again in a few moments.";
+    }
   }
 
-  // Check if we actually have data to answer from
-  const hasNews = dashboardData.includes("Latest News Headlines:") && dashboardData.split("Latest News Headlines:")[1].trim().length > 5;
-  const hasISS = !dashboardData.includes("Lat undefined") && !dashboardData.includes("Lat null");
-
-  if (!hasNews && !hasISS) {
-    return "The Nexus Intelligence system is currently synchronizing with orbital satellites and global news feeds. Please standby for telemetry and intelligence reports before querying the core.";
-  }
-
+  // Development fallback
   try {
-    const prompt = `
-You are Nexus Intelligence AI. 
-Analyze the dashboard telemetry below and answer the user query.
-
-DASHBOARD DATA:
-${dashboardData}
-
-RULES:
-1. ONLY use the provided data.
-2. If the answer isn't in the data, say "I am awaiting more telemetry to answer that specifically."
-3. Keep it concise and professional.
-
-USER QUESTION: ${userQuestion}
-
-RESPONSE:`;
-
-    const response = await client.chatCompletion({
+    const HF_TOKEN = import.meta.env.VITE_AI_TOKEN;
+    if (!HF_TOKEN) return "AI Dev Mode: VITE_AI_TOKEN missing from .env";
+    
+    const prompt = `Use this data: ${dashboardData}. Question: ${userQuestion}`;
+    const response = await axios.post("https://router.huggingface.co/novita/v3/openai/chat/completions", {
       model: "meta-llama/llama-3.1-8b-instruct",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
-      temperature: 0.2,
-      provider: "novita"
+      temperature: 0.2
+    }, {
+      headers: { "Authorization": `Bearer ${HF_TOKEN}`, "Content-Type": "application/json" }
     });
-
-    return response.choices[0].message.content || "No intelligence received from core.";
-  } catch (error) {
-    console.error("AI Error:", error);
-    return "The AI Core is temporarily offline or initializing. Please try again in 30 seconds.";
+    return response.data.choices[0].message.content;
+  } catch (err) {
+    return "AI Core initializing...";
   }
 };
