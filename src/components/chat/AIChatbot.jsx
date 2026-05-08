@@ -62,19 +62,21 @@ export default function AIChatbot({ contextData }) {
       `;
 
       const response = await askAI(dashboardDataStr, messageText);
+      const resTime = new Date().toLocaleTimeString();
       
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         text: response,
         isUser: false,
-        time: new Date().toLocaleTimeString()
+        time: resTime
       }].slice(-30));
-    } catch (error) {
+    } catch (_error) {
+      const errTime = new Date().toLocaleTimeString();
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         text: "System communication error. The intelligence core is currently offline.",
         isUser: false,
-        time: new Date().toLocaleTimeString()
+        time: errTime
       }].slice(-30));
     } finally {
       setIsTyping(false);

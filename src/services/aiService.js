@@ -28,7 +28,7 @@ export const askAI = async (dashboardData, userQuestion) => {
       headers: { "Authorization": `Bearer ${HF_TOKEN}`, "Content-Type": "application/json" }
     });
     return response.data.choices[0].message.content;
-  } catch (err) {
+  } catch (_err) {
     return "AI Core initializing...";
   }
 };

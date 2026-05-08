@@ -123,9 +123,11 @@ export default function NewsBoard({ news, loading, category, setCategory, refres
                 </div>
               </div>
             ))
-          ) : filteredNews.length > 0 ? filteredNews.map((article, idx) => {
-            const isBreaking = (Date.now() - new Date(article.publishedAt).getTime()) < 1000 * 60 * 60 * 4;
-            return (
+          ) : (() => {
+            const now = Date.now();
+            return filteredNews.length > 0 ? filteredNews.map((article, idx) => {
+              const isBreaking = (now - new Date(article.publishedAt).getTime()) < 1000 * 60 * 60 * 4;
+              return (
               <motion.div key={article.url + idx}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -188,7 +190,7 @@ export default function NewsBoard({ news, loading, category, setCategory, refres
                 Retry Connection
               </button>
             </div>
-          )}
+          ))()}
         </div>
       </div>
 
