@@ -27,24 +27,17 @@ To provide a unified, glassmorphic interface for orbital telemetry and global in
 - ✅ **Zero Runtime Errors**: Robust error boundaries and mounting checks.
 - ✅ **Optimized Performance**: Lazy loading of heavyweight components (Maps).
 - ✅ **Memory Safety**: Precise interval cleanup and side-effect management.
-- ✅ **Responsive Design**: Mobile-first architecture tested across all breakpoints.
-- ✅ **Deployment Ready**: Fully configured for immediate Vercel deployment.
+- ✅ **Redundant Telemetry**: 3-tier ISS tracking (Serverless Proxy → Direct → CORS Proxy).
+- ✅ **Deployment Ready**: Fully configured for Vercel with serverless API integration.
 
-## 📥 Local Synchronization
-1. **Initialize**:
-   ```bash
-   npm install
-   ```
-2. **Configure Environment**:
-   Create a `.env` file based on `.env.example`:
-   ```env
-   VITE_NEWS_API_KEY=your_gnews_api_key_here
-   VITE_AI_TOKEN=your_huggingface_token_here
-   ```
-3. **Launch**:
-   ```bash
-   npm run dev
-   ```
+## 📥 Deployment & Synchronization
+- **Live Dashboard**: [https://orbital-nexus-iss-dashboard.vercel.app](https://orbital-nexus-iss-dashboard.vercel.app)
+- **ISS API Proxy**: [https://orbital-nexus-iss-dashboard.vercel.app/api/iss](https://orbital-nexus-iss-dashboard.vercel.app/api/iss)
+
+### Local Development
+1. **Initialize**: `npm install`
+2. **Configure Environment**: Create `.env` based on `.env.example`
+3. **Launch**: `npm run dev`
 
 ---
-*Developed by the Orbital Nexus Engineering Team.*
+*Developed by the Orbital Nexus Engineering Team. 🛰️*
